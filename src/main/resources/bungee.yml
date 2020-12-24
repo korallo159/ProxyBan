@@ -1,0 +1,3 @@
+name: ProxyBan
+version: ${project.version}
+main: koral.proxyban.ProxyBan
