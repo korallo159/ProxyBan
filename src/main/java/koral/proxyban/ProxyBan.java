@@ -1,24 +1,25 @@
 package koral.proxyban;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import koral.proxyban.listeners.ServerConnect;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
+
+import java.io.*;
+import java.util.Map;
 
 public final class ProxyBan extends Plugin {
-    File bansFile;
+    public static File bansFile;
     @Override
     public void onEnable() {
+        getProxy().getPluginManager().registerListener(this, new ServerConnect());
         createAndImplProxyBansFiles();
     }
     private void createAndImplProxyBansFiles(){
@@ -37,17 +38,6 @@ public final class ProxyBan extends Plugin {
         }
     }
 
-    private void setBan(){
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            String json = mapper.readValue(bansFile, String.class);
-            Gson gson = new Gson();
-            JsonObject inputObj  = gson.fromJson(json, JsonObject.class);
-            JsonObject newObject = new JsonObject();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     private void banFileCreateDefaults(){
         try {
@@ -55,6 +45,9 @@ public final class ProxyBan extends Plugin {
             ObjectNode user1 = mapper.createObjectNode();
             user1.put("uuid", "6c1967d0438f11ebb3780242ac130002");
             user1.put("name", "moral");
+            user1.put("ip", "178.36.214.12");
+            user1.put("expiring", "2024.01.12");
+            user1.put("admin", "koral");
             ArrayNode arrayNode = mapper.createArrayNode();
             arrayNode.add(user1);
 
@@ -72,13 +65,6 @@ public final class ProxyBan extends Plugin {
 
     }
 
-    public User createUserBan(){
-        User user = new User();
-        user.setBanujacy("korallo");
-        user.setNick("koralik");
-        user.setUuid("11111111111111");
-        return user;
-    }
     @Override
     public void onDisable() {
         // Plugin shutdown logic

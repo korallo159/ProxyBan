@@ -1,38 +1,28 @@
 package koral.proxyban;
 
 public class User {
-
     String uuid;
+    String ip;
     String nick;
-    String databana;
     String banujacy;
-    String wygasa;
-    String powod;
+    String expiring;
 
     public User(){
 
     }
 
-    public User(String uuid, String nick, String banujacy) {
+
+
+    public User(String uuid, String nick, String ip, String banujacy, String expiring) {
         this.uuid = uuid;
+        this.ip = ip;
         this.nick = nick;
         this.banujacy = banujacy;
-    }
-
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+        this.expiring = expiring;
     }
 
     public String getNick() {
         return nick;
-    }
-
-    public void setNick(String nick) {
-        this.nick = nick;
     }
 
     public String getBanujacy() {
