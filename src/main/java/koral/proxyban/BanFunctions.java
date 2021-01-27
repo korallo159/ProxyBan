@@ -6,21 +6,102 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import koral.proxyban.listeners.ServerConnect;
+import koral.proxyban.model.User;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
-
 import static koral.proxyban.ProxyBan.bansFile;
-
 public class BanFunctions {
-    //TODO: ROZNE BANY
+    //TODO: Wykryc duplikacje bana
+    public static void setBan(ProxiedPlayer banner, String player) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = null;
+    try {
+        if (isBanned(player, "")) {
+            System.out.println("test");
+            try {
+                ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
+                for (int i = 0; i < arrayNode2.size(); i++) {
+                    ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
+
+                    if (objectNode.get("name").toString().replace("\"", "").equals(player)) {
+                  //      User user = objectMapper.readValue(objectNode.toString(), User.class);
+                    //    user.setExpiring("2101-01-12 23:59");
+                        System.out.println(objectNode.toString()); //dziala
+                        json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode2);
+                    }
+                }
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+        else
+             try {
+            ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
+            User user = new User(player, "2100-01-12 23:59", banner.getName(), "Administrator nie podal powodu banicji");
+            try {
+                String hostname = ProxyBan.getProxyBan().getProxy().getPlayer(player).getAddress().getHostName(); ////Sprawdzic w cache czy gracz kiedys gral
+                if (hostname != null)
+                    user.setIp(ProxyBan.getProxyBan().getProxy().getPlayer(player).getAddress().getHostName());
+            } catch (Exception e) {
+                ProxyServer.getInstance().getLogger().warning("Taki gracz nigdy nie był na serwerze - zbanowano bez ip!");
+            }
+            arrayNode1.addPOJO(user);
+
+            json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+        writer.write(json);
+        writer.flush();
+        writer.close();
+    }
+    catch (Exception ex){
+        ex.printStackTrace();
+    }
+
+    }
+
+    public static void setBan(ProxiedPlayer banner, String player, String date) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
+            User user = new User(player, date, banner.getName(), "Administrator nie podal powodu banicji");
+            try {
+                String hostname = ProxyBan.getProxyBan().getProxy().getPlayer(player).getAddress().getHostName();   //Sprawdzic w cache czy gracz kiedys gral
+                if(hostname != null)
+                    user.setIp(ProxyBan.getProxyBan().getProxy().getPlayer(player).getAddress().getHostName());
+            }
+            catch (Exception e){
+                ProxyServer.getInstance().getLogger().warning("Gracz nie był online - zbanowano bez ip!");
+            }
+            arrayNode1.addPOJO(user);
+
+            String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+            writer.write(json);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
     private void setBan() {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
             ObjectNode user1 = objectMapper.createObjectNode();
-            user1.put("uuid", "6c1967d0438f11ebb3780242ac130002");
             user1.put("name", "moral");
             user1.put("ip", "178.36.214.12");
             user1.put("expiring", "2024.01.12");
@@ -36,22 +117,31 @@ public class BanFunctions {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
-    public static HashMap<String, String> getBanDetailsByUUID(String uuid) {
+
+
+
+
+    public static HashMap<String, String> getBanDetailsByName(String name) {
         HashMap<String, String> map = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
             for (int i = 0; i < arrayNode1.size(); i++) {
                 ObjectNode objectNode = (ObjectNode) arrayNode1.get(i);
-                JsonNode id = objectNode.get("uuid");
-                if(id.toString().replace("\"", "").equals(uuid)){
-                    JsonNode nick = objectNode.get("nick");
+                JsonNode id = objectNode.get("name");
+                if(id.toString().replace("\"", "").equals(name)){
+                    JsonNode nick = objectNode.get("name");
+                    JsonNode ip = objectNode.get("ip");
                     JsonNode expiring = objectNode.get("expiring");
                     JsonNode admin = objectNode.get("admin");
                     JsonNode reason = objectNode.get("reason");
-                    map.put("nick", nick.toString().replace("\"", ""));
+                    map.put("name", nick.toString().replace("\"", ""));
+                    try {
+                        map.put("ip", ip.toString().replace("\"", ""));
+                    }
+                    catch (Exception e){
+                    }
                     map.put("expiring", expiring.toString().replace("\"", ""));
                     map.put("admin", admin.toString().replace("\"", ""));
                     map.put("reason", reason.toString().replace("\'", ""));
@@ -66,6 +156,69 @@ public class BanFunctions {
             e.printStackTrace();
         }
         return map;
+    }
+
+    public static HashMap<String, String> getBanDetailsByIp(String ip) {
+        HashMap<String, String> map = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
+            for (int i = 0; i < arrayNode1.size(); i++) {
+                ObjectNode objectNode = (ObjectNode) arrayNode1.get(i);
+                JsonNode id = objectNode.get("ip");
+                if(id.toString().replace("\"", "").equals(ip)){
+                    JsonNode nick = objectNode.get("name");
+                    JsonNode expiring = objectNode.get("expiring");
+                    JsonNode admin = objectNode.get("admin");
+                    JsonNode reason = objectNode.get("reason");
+                    map.put("name", nick.toString().replace("\"", ""));
+                    map.put("expiring", expiring.toString().replace("\"", ""));
+                    map.put("admin", admin.toString().replace("\"", ""));
+                    map.put("reason", reason.toString().replace("\'", ""));
+                    break;
+                }
+            }
+        } catch (JsonParseException e) {
+            e.printStackTrace();
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    public static boolean isBanned(String nick, String playerip){
+        String gotIp = null;
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
+            for(int i = 0; i < arrayNode1.size(); i++) {
+                ObjectNode objectNode = (ObjectNode) arrayNode1.get(i);
+                JsonNode id = objectNode.get("name");
+                JsonNode ip = objectNode.get("ip");
+                String gotName = id.toString().replace("\"", "");
+                try {
+                    gotIp = ip.toString().replace("\"", "");
+                }
+                catch (Exception e){
+                }
+                if(gotName.equals(nick) || playerip.equals(gotIp)){
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                    JsonNode playerDate = objectNode.get("expiring");
+                    Date date = sdf.parse(playerDate.toString().replace("\"", ""));
+                    Date today = new Date();
+                    if(date.after(today))
+                        return true;
+                    else {
+                        return false;      //todo: zrobic zeby usuwalo fielda jak juz nie ma bana
+                    }
+                }
+            }
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }

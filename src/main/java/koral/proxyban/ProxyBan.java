@@ -1,26 +1,27 @@
 package koral.proxyban;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import koral.proxyban.commands.banCommand;
 import koral.proxyban.listeners.ServerConnect;
+import koral.proxyban.model.User;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
-
 
 import java.io.*;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 public final class ProxyBan extends Plugin {
     public static File bansFile;
+    public static ProxyBan proxyBan;
+
     @Override
     public void onEnable() {
+        proxyBan = this;
         getProxy().getPluginManager().registerListener(this, new ServerConnect());
         createAndImplProxyBansFiles();
+        getProxy().getPluginManager().registerCommand(this, new banCommand());
     }
     private void createAndImplProxyBansFiles(){
         File bansDir = new File(ProxyServer.getInstance().getPluginsFolder() + "/ProxyBan") ;
@@ -42,21 +43,14 @@ public final class ProxyBan extends Plugin {
     private void banFileCreateDefaults(){
         try {
             ObjectMapper mapper = new ObjectMapper();
-            ObjectNode user1 = mapper.createObjectNode();
-            user1.put("uuid", "6c1967d0438f11ebb3780242ac130002");
-            user1.put("name", "moral");
-            user1.put("ip", "178.36.214.12");
-            user1.put("expiring", "2024.01.12");
-            user1.put("admin", "koral");
+            User user = new User("Koralik", "178.36.214.12", "2100-01-12 23:59", "korallo", "Administrator nie podał powodu");
             ArrayNode arrayNode = mapper.createArrayNode();
-            arrayNode.add(user1);
-
+            arrayNode.addPOJO(user);
             String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode);
-
-            FileWriter fileWriter = new FileWriter(bansFile);
-            fileWriter.write(json);
-            fileWriter.flush();
-            fileWriter.close();
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+            writer.write(json);
+            writer.flush();
+            writer.close();
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -67,6 +61,9 @@ public final class ProxyBan extends Plugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+    }
+
+    public static ProxyBan getProxyBan() {
+        return proxyBan;
     }
 }
