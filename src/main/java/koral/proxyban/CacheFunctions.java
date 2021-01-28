@@ -58,7 +58,7 @@ public class CacheFunctions {
             ArrayNode arrayNode = objectMapper.readValue(cacheFile, ArrayNode.class);
             for(int i =0; i< arrayNode.size(); i++){
                 ObjectNode objectNode = (ObjectNode) arrayNode.get(i);
-                if(objectNode.get("name").toString().replace("\"", "").equals(name)){
+                if(objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(name)){
                     ip = objectNode.get("ip").toString().replace("\"", "");
                 }
             }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import koral.proxyban.commands.banCommand;
+import koral.proxyban.commands.unbanCommand;
 import koral.proxyban.listeners.ServerConnect;
 import koral.proxyban.model.Cache;
 import koral.proxyban.model.User;
@@ -28,6 +29,7 @@ public final class ProxyBan extends Plugin {
         createAndImplProxyBansFiles();
         createAndImplCacheFile();
         getProxy().getPluginManager().registerCommand(this, new banCommand());
+        getProxy().getPluginManager().registerCommand(this, new unbanCommand());
     }
     private void createAndImplProxyBansFiles(){
         File bansDir = new File(ProxyServer.getInstance().getPluginsFolder() + "/ProxyBan") ;
