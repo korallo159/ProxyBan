@@ -25,39 +25,42 @@ public class BanFunctions {
         String json = null;
     try {
         if (isBanned(player, "")) {
-            System.out.println("test");
             try {
                 ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
                 for (int i = 0; i < arrayNode2.size(); i++) {
                     ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
 
                     if (objectNode.get("name").toString().replace("\"", "").equals(player)) {
-                  //      User user = objectMapper.readValue(objectNode.toString(), User.class);
-                    //    user.setExpiring("2101-01-12 23:59");
-                        System.out.println(objectNode.toString()); //dziala
+                        User user = objectMapper.readValue(objectNode.toString(), User.class);
+                        user.setExpiring("2101-01-12 23:59");
+                        arrayNode2.remove(i);
+                        arrayNode2.insertPOJO(i, user);
                         json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode2);
+                        break;
                     }
                 }
             } catch (IOException exception) {
                 exception.printStackTrace();
             }
         }
-        else
-             try {
-            ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
-            User user = new User(player, "2100-01-12 23:59", banner.getName(), "Administrator nie podal powodu banicji");
+        else {
             try {
-                String hostname = ProxyBan.getProxyBan().getProxy().getPlayer(player).getAddress().getHostName(); ////Sprawdzic w cache czy gracz kiedys gral
-                if (hostname != null)
-                    user.setIp(ProxyBan.getProxyBan().getProxy().getPlayer(player).getAddress().getHostName());
-            } catch (Exception e) {
-                ProxyServer.getInstance().getLogger().warning("Taki gracz nigdy nie był na serwerze - zbanowano bez ip!");
-            }
-            arrayNode1.addPOJO(user);
+                ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
+                User user = new User(player, "2100-01-12 23:59", banner.getName(), "Administrator nie podal powodu banicji");
+                try {
+                    String hostname = CacheFunctions.getCacheIp(player); ////Sprawdzic w cache czy gracz kiedys gral
+                    System.out.println(hostname);
+                    if (hostname != null)
+                        user.setIp(hostname);
+                } catch (Exception e) {
+                    ProxyServer.getInstance().getLogger().warning("Taki gracz nigdy nie był na serwerze - zbanowano bez ip!");
+                }
+                arrayNode1.addPOJO(user);
 
-            json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
-        } catch (IOException e) {
-            e.printStackTrace();
+                json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
         writer.write(json);
@@ -70,6 +73,7 @@ public class BanFunctions {
 
     }
 
+    //TODO: Wykryc duplikacje bana i zastapic date
     public static void setBan(ProxiedPlayer banner, String player, String date) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
