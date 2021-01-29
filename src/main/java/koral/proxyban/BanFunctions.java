@@ -18,7 +18,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import static koral.proxyban.ProxyBan.bansFile;
 public class BanFunctions {
-    public static void setBan(ProxiedPlayer banner, String player) {
+
+    //*
+    public static void setBan(String banner, String player) {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
         String ip = CacheFunctions.getCacheIp(player);
@@ -40,7 +42,7 @@ public class BanFunctions {
             }
         else {
                 ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
-                User user = new User(player, ip, "2100-01-12 23:59", banner.getName(), "Administrator nie podal powodu banicji");
+                User user = new User(player, ip, "2100-01-12 23:59", banner, "Administrator nie podal powodu banicji");
                 arrayNode1.addPOJO(user);
                 json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
         }
@@ -55,7 +57,7 @@ public class BanFunctions {
     }
 
     //TODO: Wykryc duplikacje bana i zastapic date
-    public static void setBan(ProxiedPlayer banner, String player, String date) {
+    public static void setBan(String banner, String player, String date) {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
         String ip = CacheFunctions.getCacheIp(player);
@@ -77,7 +79,7 @@ public class BanFunctions {
             }
             else {
                     ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
-                    User user = new User(player, ip,  date, banner.getName(), "Administrator nie podał powodu bana.");
+                    User user = new User(player, ip,  date, banner, "Administrator nie podał powodu bana.");
                     arrayNode1.addPOJO(user);
                     json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
             }
@@ -94,7 +96,7 @@ public class BanFunctions {
 
 
 
-    public static void setBan(ProxiedPlayer banner, String player, String date, String reason) {
+    public static void setBan(String banner, String player, String date, String reason) {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
         String ip = CacheFunctions.getCacheIp(player);
@@ -117,7 +119,7 @@ public class BanFunctions {
             }
             else {
                 ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
-                User user = new User(player, ip,  date, banner.getName(), reason);
+                User user = new User(player, ip,  date, banner, reason);
                 arrayNode1.addPOJO(user);
                 json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
             }
@@ -132,7 +134,7 @@ public class BanFunctions {
 
     }
 
-    public static void setBanReason(ProxiedPlayer banner, String player, String reason) {
+    public static void setBanReason(String banner, String player, String reason) {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
         String ip = CacheFunctions.getCacheIp(player);
@@ -154,7 +156,7 @@ public class BanFunctions {
             }
             else {
                 ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
-                User user = new User(player, ip, "2100-01-12 23:59", banner.getName(), reason);
+                User user = new User(player, ip, "2100-01-12 23:59", banner, reason);
                 arrayNode1.addPOJO(user);
                 json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
             }

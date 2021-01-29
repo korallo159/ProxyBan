@@ -11,10 +11,11 @@ import static koral.proxyban.CacheFunctions.shouldCache;
 
 public class ServerConnect implements Listener {
 //TODO: zapakowac usera do zmiennej, zeby nie czytac go N razy
+    @Deprecated
     @EventHandler
     public void onProxyConnect(LoginEvent event){
         String name = event.getConnection().getName();
-        String ip = String.valueOf(event.getConnection().getVirtualHost().getHostName());
+        String ip = event.getConnection().getAddress().getAddress().getHostAddress();
         if(shouldCache(name))
             cachePlayer(name, ip);
         if(BanFunctions.isBanned(name, ip)){
@@ -28,7 +29,7 @@ public class ServerConnect implements Listener {
 
         }
     }
-
+// no i kruszom i wogle
 
 
 }
