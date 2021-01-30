@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.CharMatcher;
 import koral.proxyban.model.User;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.io.*;
@@ -18,8 +17,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import static koral.proxyban.ProxyBan.bansFile;
 public class BanFunctions {
-
-    //*
+//todo: banowanie przez ip
+    /**
+     *
+     * @param banner nick banujacego
+     * @param player osoba ktora bedzie miec bana
+     */
     public static void setBan(String banner, String player) {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
@@ -56,7 +59,12 @@ public class BanFunctions {
       }
     }
 
-    //TODO: Wykryc duplikacje bana i zastapic date
+    /**
+     *
+     * @param banner - banujacy
+     * @param player - osoba zbanowana
+     * @param date - data bana
+     */
     public static void setBan(String banner, String player, String date) {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
@@ -94,8 +102,13 @@ public class BanFunctions {
 
     }
 
-
-
+    /**
+     *
+     * @param banner - osoba banujaca
+     * @param player - osoba zbanowana
+     * @param date - data jak dlugo gracz ma byc zbanowany
+     * @param reason - powod bana
+     */
     public static void setBan(String banner, String player, String date, String reason) {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
@@ -134,6 +147,12 @@ public class BanFunctions {
 
     }
 
+    /**
+     *
+     * @param banner
+     * @param player
+     * @param reason
+     */
     public static void setBanReason(String banner, String player, String reason) {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
@@ -171,9 +190,12 @@ public class BanFunctions {
     }
 
 
-
-
-    public static User getBanDetailsByName(String name) {
+    /**
+     *
+     * @param name - nick potrzebny do wyszukania gracza
+     * @return zwraca calego Usera
+     */
+    public static User getUserByName(String name) {
         User user = null;
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -197,7 +219,12 @@ public class BanFunctions {
         return user;
     }
 
-    public static User getBanDetailsByIp(String ip) {
+    /**
+     *
+     * @param ip - ip potrzebne do wyszukania gracza
+     * @return zwraca calego Usera
+     */
+    public static User getUserByIp(String ip) {
         User user = null;
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -221,22 +248,23 @@ public class BanFunctions {
         return user;
     }
 
+    /**
+     *
+     * @param nick - nick zbanowaego
+     * @param playerip - ip zbanowanego
+     * @return - zwraca czy gracz jest zbanowany czy nie
+     */
     public static boolean isBanned(String nick, String playerip){
-        String gotIp = null;
+        JsonNode gotIp = null;
+        JsonNode gotName = null;
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
             for(int i = 0; i < arrayNode1.size(); i++) {
                 ObjectNode objectNode = (ObjectNode) arrayNode1.get(i);
-                JsonNode id = objectNode.get("name");
-                JsonNode ip = objectNode.get("ip");
-                String gotName = id.toString().replace("\"", "");
-                try {
-                    gotIp = ip.toString().replace("\"", "");
-                }
-                catch (Exception e){
-                }
-                if(gotName.equalsIgnoreCase(nick) || playerip != null && playerip.equalsIgnoreCase(gotIp)){
+                gotName = objectNode.get("name");
+                gotIp = objectNode.get("ip");
+                if(gotName != null && gotName.toString().replace("\"", "").equalsIgnoreCase(nick) || playerip != null && gotIp.toString().replace("\"", "").equalsIgnoreCase(playerip)){
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
                     JsonNode playerDate = objectNode.get("expiring");
                     Date date = sdf.parse(playerDate.toString().replace("\"", ""));
@@ -244,7 +272,13 @@ public class BanFunctions {
                     if(date.after(today))
                         return true;
                     else {
-                        return false;      //todo: zrobic zeby usuwalo fielda jak juz nie ma bana
+                        arrayNode1.remove(i);
+                        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
+                        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+                        writer.write(json);
+                        writer.flush();
+                        writer.close();
+                        return false;
                     }
                 }
             }
@@ -254,6 +288,10 @@ public class BanFunctions {
         return false;
     }
 
+    /**
+     *
+     * @param playerArgs - output gracza
+     */
     public static void removeBan(String playerArgs){
         ObjectMapper objectMapper = new ObjectMapper();
         try{
@@ -279,6 +317,11 @@ public class BanFunctions {
         }
     }
 
+    /**
+     *
+     * @param playerArgs - wpisany specjalny ciag znakow, oznaczajacy tempbana
+     * @return zwraca przerobiona date
+     */
     public static String setTempBanDate(String playerArgs){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date today = new Date();
@@ -303,6 +346,11 @@ public class BanFunctions {
         return formatedNewDate;
     }
 
+    /**
+     *
+     * @param arg - input
+     * @return - zwraca czy data jest taka, ze poprawnie zostanie wpisany tempban.
+     */
     public static boolean isDateArg(String arg){
         CharMatcher digits = CharMatcher.inRange('0','9').precomputed();
         String formated = digits.retainFrom(arg);
@@ -310,5 +358,10 @@ public class BanFunctions {
             return true;
         }
         else return false;
+    }
+
+    public static boolean isIpArg(String arg ){
+
+        return false;
     }
 }

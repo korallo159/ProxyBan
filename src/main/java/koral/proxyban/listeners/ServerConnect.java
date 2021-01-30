@@ -1,5 +1,6 @@
 package koral.proxyban.listeners;
 import koral.proxyban.BanFunctions;
+import koral.proxyban.model.User;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.event.LoginEvent;
@@ -10,7 +11,6 @@ import static koral.proxyban.CacheFunctions.shouldCache;
 
 
 public class ServerConnect implements Listener {
-//TODO: zapakowac usera do zmiennej, zeby nie czytac go N razy
     @Deprecated
     @EventHandler
     public void onProxyConnect(LoginEvent event){
@@ -20,12 +20,15 @@ public class ServerConnect implements Listener {
             cachePlayer(name, ip);
         if(BanFunctions.isBanned(name, ip)){
                 event.setCancelled(true);
-                if(BanFunctions.getBanDetailsByIp(ip) != null)
-                    event.setCancelReason(new TextComponent(ChatColor.RED + "§lZostałeś zbanowany za: §7" + BanFunctions.getBanDetailsByIp(ip).getReason() +
-                            ChatColor.YELLOW + "\n §lData odbanowania §7" + BanFunctions.getBanDetailsByIp(ip).getExpiring()));
-                else
-                    event.setCancelReason(new TextComponent(ChatColor.RED + "§lZostałeś zbanowany za: §7" + BanFunctions.getBanDetailsByName(name).getReason() +
-                            ChatColor.YELLOW + "\n §lData odbanowania §7" + BanFunctions.getBanDetailsByName(name).getExpiring()));
+                User userByIp = BanFunctions.getUserByIp(ip);
+                if(userByIp != null)
+                    event.setCancelReason(new TextComponent(ChatColor.RED + "§lZostałeś zbanowany za: §f§l" + userByIp.getReason() +
+                            ChatColor.YELLOW + "\n §lData odbanowania: §f§l" + userByIp.getExpiring()));
+                else {
+                    User userByName = BanFunctions.getUserByName(name);
+                    event.setCancelReason(new TextComponent(ChatColor.RED + "§lZostałeś zbanowany za: §f§l" + userByName.getReason() +
+                            ChatColor.YELLOW + "\n §lData odbanowania: §f§l" + userByName.getExpiring()));
+                }
 
         }
     }

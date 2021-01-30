@@ -20,8 +20,6 @@ public final class ProxyBan extends Plugin {
     public static File bansFile;
     public static ProxyBan proxyBan;
     public static File cacheFile;
-    //TODO: cache ip
-    //TODO: threading
     @Override
     public void onEnable() {
         proxyBan = this;
