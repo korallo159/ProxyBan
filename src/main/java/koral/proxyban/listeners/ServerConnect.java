@@ -6,14 +6,17 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
+
 import static koral.proxyban.CacheFunctions.cachePlayer;
 import static koral.proxyban.CacheFunctions.shouldCache;
 
 
 public class ServerConnect implements Listener {
     @Deprecated
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onProxyConnect(LoginEvent event){
+        if(event.isCancelled()) return;
         String name = event.getConnection().getName();
         String ip = event.getConnection().getAddress().getAddress().getHostAddress();
         if(shouldCache(name))

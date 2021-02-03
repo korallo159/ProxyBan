@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.CharMatcher;
 import koral.proxyban.model.User;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.io.*;
@@ -15,6 +17,9 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import static koral.proxyban.ProxyBan.bansFile;
 public class BanFunctions {
 //todo: banowanie przez ip
@@ -32,8 +37,9 @@ public class BanFunctions {
                 ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
                 for (int i = 0; i < arrayNode2.size(); i++) {
                     ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
-
-                    if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player)) {
+// json byl nullem gdy chcialo sie zbanowac gracza ktory mial inny nick ale to samo IP, a ten gracz byl juz zbanowany
+                    if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player)
+                            || objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(ip)) {
                         User user = objectMapper.readValue(objectNode.toString(), User.class);
                         user.setExpiring("2101-01-12 23:59");
                         arrayNode2.remove(i);
@@ -49,10 +55,12 @@ public class BanFunctions {
                 arrayNode1.addPOJO(user);
                 json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
         }
-        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
-        writer.write(json);
-        writer.flush();
-        writer.close();
+        if(json != null) {
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+            writer.write(json);
+            writer.flush();
+            writer.close();
+        }
         }
             catch (IOException ex) {
         ex.printStackTrace();
@@ -75,7 +83,7 @@ public class BanFunctions {
                     for (int i = 0; i < arrayNode2.size(); i++) {
                         ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
 
-                        if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player)) {
+                        if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player) || objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(ip))  {
                             User user = objectMapper.readValue(objectNode.toString(), User.class);
                             user.setExpiring(date);
                             arrayNode2.remove(i);
@@ -91,10 +99,12 @@ public class BanFunctions {
                     arrayNode1.addPOJO(user);
                     json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
             }
-            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
-            writer.write(json);
-            writer.flush();
-            writer.close();
+            if(json != null) {
+                OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+                writer.write(json);
+                writer.flush();
+                writer.close();
+            }
         }
         catch (IOException ex){
             ex.printStackTrace();
@@ -114,12 +124,11 @@ public class BanFunctions {
         String json = null;
         String ip = CacheFunctions.getCacheIp(player);
         try {
-            if (isBanned(player, ip)) {
+            if (isBanned(player, ip)) { //probuje zrobic ta funkcje, ze jest zbanowany, a nie jest wiec sie psuje. dlatego ELSE sie nie wykonuje
                 ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
                 for (int i = 0; i < arrayNode2.size(); i++) {
                     ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
-
-                    if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player)) {
+                    if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player) || objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(ip)) { //objectnode.get().replace moze wziac wartosc null, ale jesli tylko istnieje taki klucz
                         User user = objectMapper.readValue(objectNode.toString(), User.class);
                         user.setExpiring(date);
                         user.setReason(reason);
@@ -132,19 +141,27 @@ public class BanFunctions {
             }
             else {
                 ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
+                System.out.println("ArrayNode before user:" + arrayNode1);
                 User user = new User(player, ip,  date, banner, reason);
+                System.out.println(user);
                 arrayNode1.addPOJO(user);
+                System.out.println("ArrayNode with user:" + arrayNode1);
                 json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
             }
-            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
-            writer.write(json);
-            writer.flush();
-            writer.close();
+            if(json!= null) {
+                OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+                writer.write(json);
+                writer.flush();
+                writer.close();
+            }
+            else{
+                System.out.println("json jest nullem, " + json);
+            }
+
         }
         catch (IOException ex){
             ex.printStackTrace();
         }
-
     }
 
     /**
@@ -166,6 +183,7 @@ public class BanFunctions {
                     if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player)) {
                         User user = objectMapper.readValue(objectNode.toString(), User.class);
                         user.setExpiring("2101-01-12 23:59");
+                        user.setReason(reason);
                         arrayNode2.remove(i);
                         arrayNode2.insertPOJO(i, user);
                         json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode2);
@@ -176,6 +194,116 @@ public class BanFunctions {
             else {
                 ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
                 User user = new User(player, ip, "2100-01-12 23:59", banner, reason);
+                arrayNode1.addPOJO(user);
+                json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
+            }
+            if(json != null ) {
+                OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+                writer.write(json);
+                writer.flush();
+                writer.close();
+            }
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void setBanOnlyIp(String banner, String playerIp){
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = null;
+        try {
+            if (isBanned(null, playerIp)) {
+                ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
+                for (int i = 0; i < arrayNode2.size(); i++) {
+                    ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
+
+                    if (objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(playerIp)) {
+                        User user = objectMapper.readValue(objectNode.toString(), User.class);
+                        user.setExpiring("2101-01-12 23:59");
+                        arrayNode2.remove(i);
+                        arrayNode2.insertPOJO(i, user);
+                        json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode2);
+                        break;
+                    }
+                }
+            }
+            else {
+                ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
+                User user = new User(null, playerIp, "2100-01-12 23:59", banner, "Administrator nie podal powodu banicji");
+                arrayNode1.addPOJO(user);
+                json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
+            }
+            if(json != null) {
+                OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+                writer.write(json);
+                writer.flush();
+                writer.close();
+            }
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void setBanOnlyIp(String banner, String playerIp, String date){
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = null;
+        try {
+            if (isBanned(null, playerIp)) {
+                ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
+                for (int i = 0; i < arrayNode2.size(); i++) {
+                    ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
+
+                    if (objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(playerIp)) {
+                        User user = objectMapper.readValue(objectNode.toString(), User.class);
+                        user.setExpiring(date);
+                        arrayNode2.remove(i);
+                        arrayNode2.insertPOJO(i, user);
+                        json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode2);
+                        break;
+                    }
+                }
+            }
+            else {
+                ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
+                User user = new User(null, playerIp, date, banner, "Administrator nie podał powodu bana.");
+                arrayNode1.addPOJO(user);
+                json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
+            }
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
+            writer.write(json);
+            writer.flush();
+            writer.close();
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void setBanOnlyIp(String banner, String playerIp, String date, String reason){
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = null;
+        try {
+            if (isBanned(null, playerIp)) {
+                ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
+                for (int i = 0; i < arrayNode2.size(); i++) {
+                    ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
+
+                    if (objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(playerIp)) {
+                        User user = objectMapper.readValue(objectNode.toString(), User.class);
+                        user.setExpiring(date);
+                        user.setReason(reason);
+                        arrayNode2.remove(i);
+                        arrayNode2.insertPOJO(i, user);
+                        json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode2);
+                        break;
+                    }
+                }
+            }
+            else {
+                ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
+                User user = new User(null, playerIp, date, banner, reason);
                 arrayNode1.addPOJO(user);
                 json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
             }
@@ -254,8 +382,8 @@ public class BanFunctions {
      * @param playerip - ip zbanowanego
      * @return - zwraca czy gracz jest zbanowany czy nie
      */
-    public static boolean isBanned(String nick, String playerip){
-        JsonNode gotIp = null;
+    public static boolean isBanned(String nick, String playerip){ //dziala git, blad sie wysypuje, jezeli probuje sie zbanowac gracza co jego ip jest juz w bazie.
+        JsonNode gotIp = null;                                      //jezeli probujemy zbanowac gracza o innym nicku ale tym samym ip a jest w cache
         JsonNode gotName = null;
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -360,8 +488,12 @@ public class BanFunctions {
         else return false;
     }
 
-    public static boolean isIpArg(String arg ){
-
-        return false;
+    public static boolean isIpArg(String arg){
+        if(Pattern.matches("[0-9][0-9.]*[0-9]", arg))
+            return true;
+        else
+            return false;
     }
+
+
 }

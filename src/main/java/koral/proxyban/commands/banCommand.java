@@ -28,7 +28,8 @@ public class banCommand extends Command implements TabExecutor {
             banner = sender.getName();
         else
             banner = "console";
-
+        if(args.length == 0 )
+            sender.sendMessage(new TextComponent("§4Użycie: /proxyban §f<nick> §f<data> §f<powod> §4lub /proxyban §f<nick> §f<powód>" ));
             if(args.length == 1) {
                     BanFunctions.setBan(banner, args[0]);
                     sender.sendMessage(new TextComponent(ChatColor.RED + "Zbanowałeś gracza " + args[0] + " bez podawania powodu."));
@@ -82,13 +83,13 @@ public class banCommand extends Command implements TabExecutor {
         }
       if(args.length == 2){
           complete1.add("30m");
-          complete1.add("30h");
-          complete1.add("30d");
-          complete1.add("30y");
+          complete1.add("15h");
+          complete1.add("7d");
+          complete1.add("1y");
           return complete1;
       }
         if(args.length == 3){
-            complete2.add("Powód bana");
+            complete2.add("powód bana");
             return complete2;
         }
       return players;
