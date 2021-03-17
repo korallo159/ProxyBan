@@ -33,8 +33,11 @@ public class banCommand extends Command implements TabExecutor {
             if(args.length == 1) {
                     BanFunctions.setBan(banner, args[0]);
                     sender.sendMessage(new TextComponent(ChatColor.RED + "Zbanowałeś gracza " + args[0] + " bez podawania powodu."));
+                    sender.sendMessage(new TextComponent(ChatColor.RED + "IP: " + ChatColor.YELLOW + BanFunctions.getUserByName(args[0]).getIp()));
                     if(ProxyBan.getProxyBan().getProxy().getPlayer(args[0]) != null) {
+                        String ip = ProxyBan.getProxyBan().getProxy().getPlayer(args[0]).getPendingConnection().getVirtualHost().getAddress().getHostName();
                         ProxyBan.getProxyBan().getProxy().getPlayer(args[0]).disconnect(new TextComponent(ChatColor.RED + " Zostałeś zbanowany"));
+
                     }
 
             }
@@ -44,15 +47,19 @@ public class banCommand extends Command implements TabExecutor {
                     builder.append(args[i]).append(" ");
                 BanFunctions.setBanReason(banner, args[0], builder.toString());
                 sender.sendMessage(new TextComponent(ChatColor.RED + "Zbanowałeś gracza " + args[0] + " za " + builder.toString()));
+                sender.sendMessage(new TextComponent(ChatColor.RED + "IP: " + ChatColor.YELLOW + BanFunctions.getUserByName(args[0]).getIp()));
                 if(ProxyBan.getProxyBan().getProxy().getPlayer(args[0]) != null) {
                     ProxyBan.getProxyBan().getProxy().getPlayer(args[0]).disconnect(new TextComponent(ChatColor.RED + " Zostałeś zbanowany"));
+
                 }
             }
             else if(args.length == 2){
                         BanFunctions.setBan(banner, args[0], setTempBanDate(args[1]));
                         sender.sendMessage(new TextComponent(ChatColor.RED + "Zbanowałeś gracza " + args[0] + " do " + ChatColor.YELLOW + setTempBanDate(args[1])));
+                sender.sendMessage(new TextComponent(ChatColor.RED + "IP: " + ChatColor.YELLOW + BanFunctions.getUserByName(args[0]).getIp()));
                 if(ProxyBan.getProxyBan().getProxy().getPlayer(args[0]) != null) {
                     ProxyBan.getProxyBan().getProxy().getPlayer(args[0]).disconnect(new TextComponent(ChatColor.RED + " Zostałeś zbanowany"));
+
                 }
             }
             else if(args.length >= 3) {
@@ -62,26 +69,36 @@ public class banCommand extends Command implements TabExecutor {
                     BanFunctions.setBan(banner, args[0], setTempBanDate(args[1]), builder.toString());
                     sender.sendMessage(new TextComponent(ChatColor.RED + "Zbanowałeś gracza " + args[0] + " do " + ChatColor.YELLOW + setTempBanDate(args[1]) + " za "
                             + builder.toString()));
+                sender.sendMessage(new TextComponent(ChatColor.RED + "IP: " + ChatColor.YELLOW + BanFunctions.getUserByName(args[0]).getIp()));
                 if(ProxyBan.getProxyBan().getProxy().getPlayer(args[0]) != null) {
                     ProxyBan.getProxyBan().getProxy().getPlayer(args[0]).disconnect(new TextComponent(ChatColor.RED + " Zostałeś zbanowany"));
+
                 }
             }
+    }
 
+    void kickMatchingPlayers(String ip) {
+        for (ProxiedPlayer player : ProxyBan.getProxyBan().getProxy().getPlayers())
+            if (player.getPendingConnection().getVirtualHost().getAddress().getHostName().equals(ip)) {
+                ProxyBan.getProxyBan().getProxy().getPlayer(player.getName()).disconnect(new TextComponent(ChatColor.RED + " Zostałeś zbanowany"));
+            }
     }
 
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        List<String> complete1 = new ArrayList<>();
-        List<String> complete2 = new ArrayList<>();
         Set<String> players = new HashSet<>();
         if(args.length == 1) {
-            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+            final String search = args[0].toLowerCase();
+            for (final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                if (player.getName().toLowerCase().startsWith(search)) {
                     players.add(player.getName());
+                }
             }
             return players;
         }
       if(args.length == 2){
+          List<String> complete1 = new ArrayList<>();
           complete1.add("30m");
           complete1.add("15h");
           complete1.add("7d");
@@ -89,6 +106,7 @@ public class banCommand extends Command implements TabExecutor {
           return complete1;
       }
         if(args.length == 3){
+            List<String> complete2 = new ArrayList<>();
             complete2.add("powód bana");
             return complete2;
         }

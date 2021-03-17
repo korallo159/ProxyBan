@@ -20,8 +20,10 @@ public class unbanCommand extends Command implements TabExecutor {
     public void execute(CommandSender sender, String[] args) {
         if(sender instanceof ProxiedPlayer){
                 if(args.length == 1){
-                    BanFunctions.removeBan(args[0]);
+                    if(BanFunctions.removeBan(args[0]))
                     sender.sendMessage(new TextComponent(ChatColor.RED + "Odbanowałeś gracza " + args[0]));
+                    else
+                        sender.sendMessage(new TextComponent(ChatColor.RED + " Ta osoba nie jest zbanowana!" ));
                 }
         }
     }

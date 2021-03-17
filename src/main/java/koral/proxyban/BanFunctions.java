@@ -38,8 +38,8 @@ public class BanFunctions {
                 for (int i = 0; i < arrayNode2.size(); i++) {
                     ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
 // json byl nullem gdy chcialo sie zbanowac gracza ktory mial inny nick ale to samo IP, a ten gracz byl juz zbanowany
-                    if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player)
-                            || objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(ip)) {
+                    if (objectNode.get("name").asText().equalsIgnoreCase(player)
+                            || objectNode.get("ip").asText().equalsIgnoreCase(ip)) {
                         User user = objectMapper.readValue(objectNode.toString(), User.class);
                         user.setExpiring("2101-01-12 23:59");
                         arrayNode2.remove(i);
@@ -83,7 +83,7 @@ public class BanFunctions {
                     for (int i = 0; i < arrayNode2.size(); i++) {
                         ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
 
-                        if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player) || objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(ip))  {
+                        if (objectNode.get("name").asText().equalsIgnoreCase(player) || objectNode.get("ip").asText().equalsIgnoreCase(ip))  {
                             User user = objectMapper.readValue(objectNode.toString(), User.class);
                             user.setExpiring(date);
                             arrayNode2.remove(i);
@@ -128,7 +128,7 @@ public class BanFunctions {
                 ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
                 for (int i = 0; i < arrayNode2.size(); i++) {
                     ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
-                    if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player) || objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(ip)) { //objectnode.get().replace moze wziac wartosc null, ale jesli tylko istnieje taki klucz
+                    if (objectNode.get("name").asText().equalsIgnoreCase(player) || objectNode.get("ip").asText().equalsIgnoreCase(ip)) { //objectnode.get().replace moze wziac wartosc null, ale jesli tylko istnieje taki klucz
                         User user = objectMapper.readValue(objectNode.toString(), User.class);
                         user.setExpiring(date);
                         user.setReason(reason);
@@ -141,11 +141,8 @@ public class BanFunctions {
             }
             else {
                 ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
-                System.out.println("ArrayNode before user:" + arrayNode1);
                 User user = new User(player, ip,  date, banner, reason);
-                System.out.println(user);
                 arrayNode1.addPOJO(user);
-                System.out.println("ArrayNode with user:" + arrayNode1);
                 json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode1);
             }
             if(json!= null) {
@@ -179,8 +176,7 @@ public class BanFunctions {
                 ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
                 for (int i = 0; i < arrayNode2.size(); i++) {
                     ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
-
-                    if (objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(player)) {
+                    if (objectNode.get("name").asText().equalsIgnoreCase(player)) {
                         User user = objectMapper.readValue(objectNode.toString(), User.class);
                         user.setExpiring("2101-01-12 23:59");
                         user.setReason(reason);
@@ -218,7 +214,7 @@ public class BanFunctions {
                 for (int i = 0; i < arrayNode2.size(); i++) {
                     ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
 
-                    if (objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(playerIp)) {
+                    if (objectNode.get("ip").asText().equalsIgnoreCase(playerIp)) {
                         User user = objectMapper.readValue(objectNode.toString(), User.class);
                         user.setExpiring("2101-01-12 23:59");
                         arrayNode2.remove(i);
@@ -255,7 +251,7 @@ public class BanFunctions {
                 for (int i = 0; i < arrayNode2.size(); i++) {
                     ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
 
-                    if (objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(playerIp)) {
+                    if (objectNode.get("ip").asText().equalsIgnoreCase(playerIp)) {
                         User user = objectMapper.readValue(objectNode.toString(), User.class);
                         user.setExpiring(date);
                         arrayNode2.remove(i);
@@ -290,7 +286,7 @@ public class BanFunctions {
                 for (int i = 0; i < arrayNode2.size(); i++) {
                     ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
 
-                    if (objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(playerIp)) {
+                    if (objectNode.get("ip").asText().equalsIgnoreCase(playerIp)) {
                         User user = objectMapper.readValue(objectNode.toString(), User.class);
                         user.setExpiring(date);
                         user.setReason(reason);
@@ -316,8 +312,6 @@ public class BanFunctions {
             ex.printStackTrace();
         }
     }
-
-
     /**
      *
      * @param name - nick potrzebny do wyszukania gracza
@@ -331,7 +325,7 @@ public class BanFunctions {
             for (int i = 0; i < arrayNode1.size(); i++) {
                 ObjectNode objectNode = (ObjectNode) arrayNode1.get(i);
                 JsonNode id = objectNode.get("name");
-                if(id.toString().replace("\"", "").equalsIgnoreCase(name)){
+                if(id.asText().equalsIgnoreCase(name)){
                     Reader reader = new StringReader(objectNode.toString());
                     user = objectMapper.readValue(reader, User.class);
                     break;
@@ -360,7 +354,7 @@ public class BanFunctions {
             for (int i = 0; i < arrayNode1.size(); i++) {
                 ObjectNode objectNode = (ObjectNode) arrayNode1.get(i);
                 JsonNode id = objectNode.get("ip");
-                if(id.toString().replace("\"", "").equalsIgnoreCase(ip)){
+                if(id.asText().equalsIgnoreCase(ip)){
                     Reader reader = new StringReader(objectNode.toString());
                     user = objectMapper.readValue(reader, User.class);
                     break;
@@ -382,9 +376,9 @@ public class BanFunctions {
      * @param playerip - ip zbanowanego
      * @return - zwraca czy gracz jest zbanowany czy nie
      */
-    public static boolean isBanned(String nick, String playerip){ //dziala git, blad sie wysypuje, jezeli probuje sie zbanowac gracza co jego ip jest juz w bazie.
-        JsonNode gotIp = null;                                      //jezeli probujemy zbanowac gracza o innym nicku ale tym samym ip a jest w cache
-        JsonNode gotName = null;
+    public static boolean isBanned(String nick, String playerip){
+        JsonNode gotIp;
+        JsonNode gotName;
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             ArrayNode arrayNode1 = objectMapper.readValue(bansFile, ArrayNode.class);
@@ -392,10 +386,11 @@ public class BanFunctions {
                 ObjectNode objectNode = (ObjectNode) arrayNode1.get(i);
                 gotName = objectNode.get("name");
                 gotIp = objectNode.get("ip");
-                if(gotName != null && gotName.toString().replace("\"", "").equalsIgnoreCase(nick) || playerip != null && gotIp.toString().replace("\"", "").equalsIgnoreCase(playerip)){
+                if(gotName != null && gotName.asText().equalsIgnoreCase(nick) ||
+                        playerip != null && gotIp.asText().equalsIgnoreCase(playerip)){
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
                     JsonNode playerDate = objectNode.get("expiring");
-                    Date date = sdf.parse(playerDate.toString().replace("\"", ""));
+                    Date date = sdf.parse(playerDate.asText());
                     Date today = new Date();
                     if(date.after(today))
                         return true;
@@ -420,20 +415,21 @@ public class BanFunctions {
      *
      * @param playerArgs - output gracza
      */
-    public static void removeBan(String playerArgs){
+    public static boolean removeBan(String playerArgs){
         ObjectMapper objectMapper = new ObjectMapper();
         try{
             ArrayNode arrayNode2 = objectMapper.readValue(bansFile, ArrayNode.class);
             for (int i = 0; i < arrayNode2.size(); i++){
                 ObjectNode objectNode = (ObjectNode) arrayNode2.get(i);
-                if(objectNode.get("name").toString().replace("\"", "").equalsIgnoreCase(playerArgs)
-                        || objectNode.get("ip").toString().replace("\"", "").equalsIgnoreCase(playerArgs)){
+                if(objectNode.get("name").asText().equalsIgnoreCase(playerArgs)
+                        || objectNode.get("ip").asText().equalsIgnoreCase(playerArgs)){
                     arrayNode2.remove(i);
                     String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode2);
                     OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(bansFile), StandardCharsets.UTF_8);
                     writer.write(json);
                     writer.flush();
                     writer.close();
+                    return true;
                 }
             }
         } catch (JsonParseException e) {
@@ -443,6 +439,7 @@ public class BanFunctions {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+        return false;
     }
 
     /**
@@ -489,11 +486,15 @@ public class BanFunctions {
     }
 
     public static boolean isIpArg(String arg){
-        if(Pattern.matches("[0-9][0-9.]*[0-9]", arg))
+        if(Pattern.matches("[0-9][0-9.]*[0-9]", arg)) // LICZBA LICZBA .LICZBA
             return true;
         else
             return false;
     }
 
+
+    public static void main(String [] args){
+
+    }
 
 }
