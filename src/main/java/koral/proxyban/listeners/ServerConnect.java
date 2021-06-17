@@ -7,6 +7,7 @@ import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
+import net.md_5.bungee.protocol.DefinedPacket;
 
 import static koral.proxyban.CacheFunctions.cachePlayer;
 import static koral.proxyban.CacheFunctions.shouldCache;
@@ -19,19 +20,18 @@ public class ServerConnect implements Listener {
         if(event.isCancelled()) return;
         String name = event.getConnection().getName();
         String ip = event.getConnection().getAddress().getAddress().getHostAddress(); //stare zcachowane ip, przez to nie bylo bana.
-  //      System.out.println(event.getConnection().getAddress().getAddress().getHostAddress());
         if(BanFunctions.isBanned(name, ip)){
                 event.setCancelled(true);
                 User userByIp = BanFunctions.getUserByIp(ip);
                 if(userByIp != null)
-                    event.setCancelReason(new TextComponent("§c§l>>§4§lJBWM.PL§c§l<< \n\n" + ChatColor.RED + "§lZostałeś zbanowany za: §f§l" + userByIp.getReason() +
-                            ChatColor.YELLOW + "\n §lData odbanowania: §f§l" + userByIp.getExpiring() + "\n §c§lZbanowanał Cię administrator: §f§l" + userByIp.getAdmin()
-                    + "\n\n§c§lJeżeli twierdzisz, że ban jest niesłuszny zgłoś się do osoby banującej. Oszukiwanie administratora wiążę się z blacklistą."));
+                    event.setCancelReason(new TextComponent("§4§l>>§c§lJBWM.PL§4§l<< \n\n" + "§9§lZostałeś zbanowany za: §f§l" + userByIp.getReason() +
+                             "§9§l\n Data odbanowania: §f§l" + userByIp.getExpiring() + "\n §9§lZbanowanał Cię administrator: §f§l" + userByIp.getAdmin()
+                    + "\n\n§9§lJeżeli twierdzisz, że ban jest niesłuszny zgłoś się do osoby banującej. Oszukiwanie administratora wiążę się z blacklistą."));
                 else {
                     User userByName = BanFunctions.getUserByName(name);
-                    event.setCancelReason(new TextComponent("§c§l>>§4§lJBWM.PL§c§l<< \n\n" + ChatColor.RED + "§lZostałeś zbanowany za: §f§l" + userByName.getReason() +
-                            ChatColor.YELLOW + "\n §lData odbanowania: §f§l" + userByName.getExpiring() + "\n §c§lZbanowanał Cię administrator: §f§l" + userByName.getAdmin()
-                            + "\n\n§c§lJeżeli twierdzisz, że ban jest niesłuszny zgłoś się do osoby banującej. Oszukiwanie administratora wiążę się z blacklistą."));
+                    event.setCancelReason(new TextComponent("§4§l>>§c§lJBWM.PL§4§l<< \n\n" + "§9§lZostałeś zbanowany za: §f§l" + userByName.getReason() +
+                            "§9§l\n Data odbanowania: §f§l" + userByName.getExpiring() + "\n §9§lZbanowanał Cię administrator: §f§l" + userByName.getAdmin()
+                            + "\n\n§§9§lJeżeli twierdzisz, że ban jest niesłuszny zgłoś się do osoby banującej. Oszukiwanie administratora wiążę się z blacklistą."));
                 }
 
               return;
@@ -39,6 +39,8 @@ public class ServerConnect implements Listener {
 
         if(shouldCache(name, ip))
             cachePlayer(name, ip);
+
+
     }
 
 

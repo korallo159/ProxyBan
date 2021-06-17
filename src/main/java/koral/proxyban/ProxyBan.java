@@ -1,33 +1,41 @@
 package koral.proxyban;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import koral.proxyban.commands.banCommand;
-import koral.proxyban.commands.unbanCommand;
+import koral.proxyban.commands.Ban;
+import koral.proxyban.commands.BanDetails;
+import koral.proxyban.commands.Unban;
 import koral.proxyban.listeners.ServerConnect;
 import koral.proxyban.model.Cache;
 import koral.proxyban.model.User;
+import koral.proxyban.rcon.rconserver.RconServer;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.config.Configuration;
+import net.md_5.bungee.config.ConfigurationProvider;
+import net.md_5.bungee.config.YamlConfiguration;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 public final class ProxyBan extends Plugin {
     public static File bansFile;
-    public static ProxyBan proxyBan;
     public static File cacheFile;
+    public static ProxyBan proxyBan;
+    public static Configuration config;
     @Override
     public void onEnable() {
         proxyBan = this;
+        createConfig();
         getProxy().getPluginManager().registerListener(this, new ServerConnect());
         createAndImplProxyBansFiles();
         createAndImplCacheFile();
-        getProxy().getPluginManager().registerCommand(this, new banCommand());
-        getProxy().getPluginManager().registerCommand(this, new unbanCommand());
+        getProxy().getPluginManager().registerCommand(this, new Ban());
+        getProxy().getPluginManager().registerCommand(this, new Unban());
+        getProxy().getPluginManager().registerCommand(this, new BanDetails());
+        new Thread(() -> new RconServer(config.getInt("rconport"), config.getString("password"))).start();
     }
     private void createAndImplProxyBansFiles(){
         File bansDir = new File(ProxyServer.getInstance().getPluginsFolder() + "/ProxyBan") ;
@@ -99,4 +107,19 @@ public final class ProxyBan extends Plugin {
     public static ProxyBan getProxyBan() {
         return proxyBan;
     }
+
+    private void createConfig(){
+        if (!getDataFolder().exists()) getDataFolder().mkdir();
+        File file = new File(getDataFolder(), "config.yml");
+        try {
+            if (!file.exists())
+                Files.copy(getResourceAsStream("config.yml"), file.toPath());
+
+            config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
