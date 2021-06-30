@@ -1,3 +1,13 @@
 
-rconport: 26055
-password: '12345'
+lobby: lobby
+
+db:
+  enabled: false
+  jdbcurl: ''
+  username: ''
+  password: ''
+
+
+rcon:
+  port: 26055
+  password: '12345'

@@ -3,9 +3,10 @@ package koral.proxyban;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import koral.proxyban.commands.Ban;
-import koral.proxyban.commands.BanDetails;
-import koral.proxyban.commands.Unban;
+import koral.proxyban.commands.*;
+import koral.proxyban.database.DatabaseConnection;
+import koral.proxyban.listeners.PlayerBanned;
+import koral.proxyban.listeners.PreLogin;
 import koral.proxyban.listeners.ServerConnect;
 import koral.proxyban.model.Cache;
 import koral.proxyban.model.User;
@@ -29,13 +30,18 @@ public final class ProxyBan extends Plugin {
     public void onEnable() {
         proxyBan = this;
         createConfig();
-        getProxy().getPluginManager().registerListener(this, new ServerConnect());
         createAndImplProxyBansFiles();
         createAndImplCacheFile();
+
+        getProxy().getPluginManager().registerListener(this, new ServerConnect());
+        getProxy().getPluginManager().registerListener(this, new PlayerBanned());
+
         getProxy().getPluginManager().registerCommand(this, new Ban());
         getProxy().getPluginManager().registerCommand(this, new Unban());
         getProxy().getPluginManager().registerCommand(this, new BanDetails());
-        new Thread(() -> new RconServer(config.getInt("rconport"), config.getString("password"))).start();
+        getProxy().getPluginManager().registerCommand(this, new Lobby());
+        getProxy().getPluginManager().registerCommand(this, new ProxyTeleport());
+        new Thread(() -> new RconServer(config.getInt("rcon.port"), config.getString("rcon.password"))).start();
     }
     private void createAndImplProxyBansFiles(){
         File bansDir = new File(ProxyServer.getInstance().getPluginsFolder() + "/ProxyBan") ;
@@ -102,6 +108,11 @@ public final class ProxyBan extends Plugin {
 
     @Override
     public void onDisable() {
+        if(config.getBoolean("db.enabled")) {
+            DatabaseConnection.configureDbConnection();
+            DatabaseConnection.deleteRecords();
+            DatabaseConnection.reloadBansInDatabase();
+        }
     }
 
     public static ProxyBan getProxyBan() {

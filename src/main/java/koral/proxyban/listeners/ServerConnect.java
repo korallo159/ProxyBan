@@ -1,21 +1,19 @@
 package koral.proxyban.listeners;
 import koral.proxyban.BanFunctions;
 import koral.proxyban.model.User;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
-import net.md_5.bungee.protocol.DefinedPacket;
 
 import static koral.proxyban.CacheFunctions.cachePlayer;
 import static koral.proxyban.CacheFunctions.shouldCache;
 
 
 public class ServerConnect implements Listener {
-    @Deprecated
-    @EventHandler(priority = EventPriority.LOWEST)
+
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onProxyConnect(LoginEvent event){
         if(event.isCancelled()) return;
         String name = event.getConnection().getName();
@@ -31,7 +29,7 @@ public class ServerConnect implements Listener {
                     User userByName = BanFunctions.getUserByName(name);
                     event.setCancelReason(new TextComponent("§4§l>>§c§lJBWM.PL§4§l<< \n\n" + "§9§lZostałeś zbanowany za: §f§l" + userByName.getReason() +
                             "§9§l\n Data odbanowania: §f§l" + userByName.getExpiring() + "\n §9§lZbanowanał Cię administrator: §f§l" + userByName.getAdmin()
-                            + "\n\n§§9§lJeżeli twierdzisz, że ban jest niesłuszny zgłoś się do osoby banującej. Oszukiwanie administratora wiążę się z blacklistą."));
+                            + "\n\n§9§lJeżeli twierdzisz, że ban jest niesłuszny zgłoś się do osoby banującej. Oszukiwanie administratora wiążę się z blacklistą."));
                 }
 
               return;
