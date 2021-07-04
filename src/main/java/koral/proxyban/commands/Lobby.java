@@ -8,7 +8,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-import net.md_5.bungee.api.plugin.TabExecutor;
 
 public class Lobby extends Command {
     public Lobby() {
@@ -18,7 +17,7 @@ public class Lobby extends Command {
     @Override
     public void execute(CommandSender commandSender,String[] strings) {
         if (commandSender instanceof ProxiedPlayer ) {
-            ServerInfo server = ProxyServer.getInstance().getServers().get(ProxyBan.getProxyBan().config.getString("lobby"));
+            ServerInfo server = ProxyServer.getInstance().getServers().get(ProxyBan.config.getString("lobby"));
             if (server == null)
                 commandSender.sendMessage(TextComponent.fromLegacyText(ChatColor.RED + "Nie można odnaleźć serwera"));
             else

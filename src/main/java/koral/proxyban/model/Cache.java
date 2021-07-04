@@ -9,6 +9,9 @@ public class Cache {
         this.ip = ip;
     }
 
+    public Cache(){
+    }
+
     public String getName() {
         return name;
     }

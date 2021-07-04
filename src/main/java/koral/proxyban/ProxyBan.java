@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import koral.proxyban.commands.*;
 import koral.proxyban.database.DatabaseConnection;
 import koral.proxyban.listeners.PlayerBanned;
-import koral.proxyban.listeners.PreLogin;
 import koral.proxyban.listeners.ServerConnect;
 import koral.proxyban.model.Cache;
 import koral.proxyban.model.User;
