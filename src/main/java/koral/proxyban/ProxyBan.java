@@ -28,7 +28,7 @@ public final class ProxyBan extends Plugin {
     @Override
     public void onEnable() {
         proxyBan = this;
-        createConfig();
+        reloadConfig();
         createAndImplProxyBansFiles();
         createAndImplCacheFile();
 
@@ -40,8 +40,44 @@ public final class ProxyBan extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new BanDetails());
         getProxy().getPluginManager().registerCommand(this, new Lobby());
         getProxy().getPluginManager().registerCommand(this, new ProxyTeleport());
+        getProxy().getPluginManager().registerCommand(this, new AutoMessage());
         new Thread(() -> new RconServer(config.getInt("rcon.port"), config.getString("rcon.password"))).start();
     }
+
+    @Override
+    public void onDisable() {
+        if(config.getBoolean("db.enabled")) {
+            DatabaseConnection.configureDbConnection();
+            DatabaseConnection.deleteRecords();
+            DatabaseConnection.reloadBansInDatabase();
+        }
+    }
+
+    public static ProxyBan getProxyBan() {
+        return proxyBan;
+    }
+
+    public void reloadConfig(){
+        if (!getDataFolder().exists()) getDataFolder().mkdir();
+        File file = new File(getDataFolder(), "config.yml");
+        try {
+            if (!file.exists())
+                Files.copy(getResourceAsStream("config.yml"), file.toPath());
+
+            config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveConfig(){
+        try {
+            ConfigurationProvider.getProvider(YamlConfiguration.class).save(ProxyBan.config, new File(getDataFolder(), "config.yml"));
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+    }
+
     private void createAndImplProxyBansFiles(){
         File bansDir = new File(ProxyServer.getInstance().getPluginsFolder() + "/ProxyBan") ;
         bansFile = new File(ProxyServer.getInstance().getPluginsFolder(), "/ProxyBan/bans.json");
@@ -68,12 +104,10 @@ public final class ProxyBan extends Plugin {
             e.printStackTrace();
         }
     }
-
-
     private void banFileCreateDefaults(){
         try {
             ObjectMapper mapper = new ObjectMapper();
-            User user = new User("Koralik", "178.36.214.12", "2100-01-12 23:59", "korallo", "Administrator nie podał powodu");
+            User user = new User("TestowyBan_", "178.36.214.12", "2100-01-12 23:59", "korallo", "Administrator nie podał powodu");
             ArrayNode arrayNode = mapper.createArrayNode();
             arrayNode.addPOJO(user);
             String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode);
@@ -88,7 +122,6 @@ public final class ProxyBan extends Plugin {
         }
 
     }
-
     private void setCacheFileDefaults(){
         ObjectMapper mapper = new ObjectMapper();
         Cache cache = new Cache("testowy", "123.123.123.123");
@@ -102,32 +135,6 @@ public final class ProxyBan extends Plugin {
             writer.close();
         } catch (IOException exception) {
             exception.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onDisable() {
-        if(config.getBoolean("db.enabled")) {
-            DatabaseConnection.configureDbConnection();
-            DatabaseConnection.deleteRecords();
-            DatabaseConnection.reloadBansInDatabase();
-        }
-    }
-
-    public static ProxyBan getProxyBan() {
-        return proxyBan;
-    }
-
-    private void createConfig(){
-        if (!getDataFolder().exists()) getDataFolder().mkdir();
-        File file = new File(getDataFolder(), "config.yml");
-        try {
-            if (!file.exists())
-                Files.copy(getResourceAsStream("config.yml"), file.toPath());
-
-            config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

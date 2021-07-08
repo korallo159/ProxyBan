@@ -1,9 +1,6 @@
 package koral.proxyban;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.CharMatcher;
@@ -11,8 +8,9 @@ import koral.proxyban.events.PlayerBannedEvent;
 import koral.proxyban.model.User;
 import org.apache.commons.lang3.time.DateUtils;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -98,7 +96,7 @@ public class BanFunctions extends ProxyWriter {
             ArrayNode array = objectMapper.readValue (bansFile , ArrayNode.class);
             for (int i = 0 ; i < array.size () ; i++) {
                 User user = objectMapper.readValue(array.get(i).toString(), User.class);
-                if (user.getName ().equalsIgnoreCase (playerArgs) || user.getIp ().equalsIgnoreCase (playerArgs)) {
+                if (user.getName ().equalsIgnoreCase (playerArgs) || user.getIp() != null && user.getIp ().equalsIgnoreCase (playerArgs)) {
                     array.remove (i);
                     i--;
                     isEdited = true;

@@ -11,3 +11,9 @@ db:
 rcon:
   port: 26055
   password: '12345'
+
+automessage:
+  interval: 60
+  messages:
+    - 'Testowa wiadomosc 1'
+    - 'testowa wiadomosc 2'
