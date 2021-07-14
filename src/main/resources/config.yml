@@ -1,5 +1,6 @@
 
-lobby: lobby
+lobby:
+  - lobby
 
 db:
   enabled: false
